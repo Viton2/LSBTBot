@@ -5,13 +5,21 @@ import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Activity;
 import net.dv8tion.jda.api.entities.Member;
+import net.dv8tion.jda.api.entities.Message;
+import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.entities.User;
+import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
+import net.dv8tion.jda.api.entities.emoji.Emoji;
+import net.dv8tion.jda.api.events.guild.member.GuildMemberJoinEvent;
+import net.dv8tion.jda.api.events.guild.member.GuildMemberRemoveEvent;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
+import net.dv8tion.jda.api.events.message.react.MessageReactionAddEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.interactions.commands.DefaultMemberPermissions;
 import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.Commands;
+import net.dv8tion.jda.api.requests.GatewayIntent;
 import net.dv8tion.jda.api.requests.restaction.AuditableRestAction;
 
 import java.io.IOException;
@@ -21,6 +29,8 @@ import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 
 public class Bot extends ListenerAdapter {
+    private TextChannel channel;
+    private Message message = null;
 
     public static void main(String[] args) {
 
@@ -46,7 +56,10 @@ public class Bot extends ListenerAdapter {
         // We don't need any intents for this bot. Slash commands work without any intents!
         JDA jda = JDABuilder.createLight(prop.getProperty("api.config.token"), Collections.emptyList())
                 .addEventListeners(new Bot())
-                .setActivity(Activity.listening("your mom moaning."))
+                .enableIntents(GatewayIntent.GUILD_MESSAGE_REACTIONS)
+                .enableIntents(GatewayIntent.GUILD_MEMBERS)
+                .enableIntents(GatewayIntent.GUILD_EMOJIS_AND_STICKERS)
+                .setActivity(Activity.listening("sua mae gemendo"))
                 .build();
 
         // Sets the global command list to the provided commands (removing all others)
@@ -57,7 +70,7 @@ public class Bot extends ListenerAdapter {
                         .setGuildOnly(true) // Ban command only works inside a guild
                         .addOption(OptionType.USER, "user", "The user to ban", true) // required option of type user (target to ban)
                         .addOption(OptionType.STRING, "reason", "The ban reason"),
-                Commands.slash("nigga", "Set someone as a nigga")
+                Commands.slash("corno", "Diz que alguem eh corno")
                         .addOption(OptionType.USER, "user", "O Corno", true),
                 Commands.slash("clean", "Limpa as mensagens")
                         .addOption(OptionType.USER, "user", "O Corno", true)
@@ -65,6 +78,31 @@ public class Bot extends ListenerAdapter {
         } catch (IOException ex) {
             ex.printStackTrace();
         }
+    }
+
+
+    @Override
+    public void onGuildMemberJoin(GuildMemberJoinEvent event) {
+        channel = event.getGuild().getTextChannelById("1105628592760696902");
+        message = channel.sendMessage("Bem-vindo(a) " + event.getMember().getAsMention() + " ao " + event.getGuild().getName() + "! Reaja a esta mensagem para obter acesso aos chats de voz e texto.").complete();
+        message.addReaction(Emoji.fromCustom("teste", Long.parseLong("1105626501476536392"), false)).queue();
+    }
+
+    @Override
+    public void onMessageReactionAdd(MessageReactionAddEvent event) {
+        if (message != null) {
+            // Código para adicionar o cargo aqui
+            if (event.getMessageId().equals(message.getId()) && !event.getUser().isBot()) {
+                Role role = event.getGuild().getRoleById("1105628763586302053");
+                event.getGuild().addRoleToMember(event.getMember(), role).queue();
+            }
+        }
+    }
+
+    @Override
+    public void onGuildMemberRemove(GuildMemberRemoveEvent event){
+        channel = event.getGuild().getTextChannelById("1105628592760696902");
+        message = channel.sendMessage(event.getMember() + " saiu do servidor").complete();
     }
 
     @Override
@@ -81,7 +119,7 @@ public class Bot extends ListenerAdapter {
             case "ban":
                 // double check permissions, don't trust discord on this!
                 if (!event.getMember().hasPermission(Permission.BAN_MEMBERS)) {
-                    event.reply("You cannot ban members! Nice try ;)").setEphemeral(true).queue();
+                    event.reply("You cannot ban members! Nice try.").setEphemeral(true).queue();
                     break;
                 }
                 User target = event.getOption("user", OptionMapping::getAsUser);
@@ -106,14 +144,15 @@ public class Bot extends ListenerAdapter {
                     event.getHook().editOriginal("Some error occurred, try again!").queue();
                     error.printStackTrace();
                 });
-            case "nigga":
+            case "corno":
                 User user = event.getOption("user", OptionMapping::getAsUser);
                 if (user != null) {
-                    event.reply(user.getAsMention() + " is a fucking nigga.").setEphemeral(false).queue();
+                    event.reply(user.getAsMention() + " eh um corno.").setEphemeral(false).queue();
                 }else {
                     event.reply("Usuario invalido, tente novamente.").setEphemeral(false).queue();
                 }
         }
+
 
     }
 
