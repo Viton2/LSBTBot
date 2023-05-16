@@ -42,19 +42,11 @@ public class Bot extends ListenerAdapter {
                 System.out.println("Sorry, unable to find config.properties");
                 return;
             }
-
             //load a properties file from class path, inside static method
             prop.load(input);
+            String token = prop.getProperty("api.config.token");
 
-            //get the property value and print it out
-//            JDA bot = JDABuilder.createDefault(prop.getProperty("api.config.token"))
-//                    .setActivity(Activity.listening("sua mae gemendo"))
-//                    .setStatus(OnlineStatus.ONLINE)
-//                    .build();
-
-        // args[0] would be the token (using an environment variable or config file is preferred for security)
-        // We don't need any intents for this bot. Slash commands work without any intents!
-        JDA jda = JDABuilder.createLight(prop.getProperty("api.config.token"), Collections.emptyList())
+        JDA jda = JDABuilder.createLight(token, Collections.emptyList())
                 .addEventListeners(new Bot())
                 .enableIntents(GatewayIntent.GUILD_MESSAGE_REACTIONS)
                 .enableIntents(GatewayIntent.GUILD_MEMBERS)
@@ -74,35 +66,45 @@ public class Bot extends ListenerAdapter {
                         .addOption(OptionType.USER, "user", "O Corno", true),
                 Commands.slash("clean", "Limpa as mensagens")
                         .addOption(OptionType.USER, "user", "O Corno", true)
+//                Commands.slash("msg", "manda msg")
         ).queue();
         } catch (IOException ex) {
             ex.printStackTrace();
         }
     }
 
-
     @Override
     public void onGuildMemberJoin(GuildMemberJoinEvent event) {
-        channel = event.getGuild().getTextChannelById("1105628592760696902");
-        message = channel.sendMessage("Bem-vindo(a) " + event.getMember().getAsMention() + " ao " + event.getGuild().getName() + "! Reaja a esta mensagem para obter acesso aos chats de voz e texto.").complete();
-        message.addReaction(Emoji.fromCustom("teste", Long.parseLong("1105626501476536392"), false)).queue();
+        Role role = event.getGuild().getRoleById("1105665463880519792");
+        event.getGuild().addRoleToMember(event.getMember(), role).queue();
     }
 
     @Override
     public void onMessageReactionAdd(MessageReactionAddEvent event) {
-        if (message != null) {
-            // Código para adicionar o cargo aqui
-            if (event.getMessageId().equals(message.getId()) && !event.getUser().isBot()) {
-                Role role = event.getGuild().getRoleById("1105628763586302053");
-                event.getGuild().addRoleToMember(event.getMember(), role).queue();
+        if (event.getMessageId().equals("1105672898854801482") && !event.getUser().isBot()) {
+            if (!event.getMember().getRoles().isEmpty()) {
+                if (event.getMember().getRoles().contains(event.getGuild().getRoleById("1105665463880519792"))) {
+                    Role roleColocar = event.getGuild().getRoleById("1105665806555156480");
+                    Role roleTirar = event.getGuild().getRoleById("1105665463880519792");
+                    event.getGuild().addRoleToMember(event.getMember(), roleColocar).queue();
+                    event.getGuild().removeRoleFromMember(event.getMember(), roleTirar).queue();
+                } else {
+                    event.getUser().openPrivateChannel().queue(channel -> {
+                        String message = "Voce ja tem acesso aos chats, " + event.getUser().getName() + " corno(a).";
+                        channel.sendMessage(message).queue();
+                    });
+                }
+            } else {
+                Role roleColocar = event.getGuild().getRoleById("1105665806555156480");
+                event.getGuild().addRoleToMember(event.getMember(), roleColocar).queue();
             }
         }
     }
 
     @Override
     public void onGuildMemberRemove(GuildMemberRemoveEvent event){
-        channel = event.getGuild().getTextChannelById("1105628592760696902");
-        message = channel.sendMessage(event.getMember() + " saiu do servidor").complete();
+        channel = event.getGuild().getTextChannelById("1105667587477610519");
+        message = channel.sendMessage(event.getUser().getName() + " saiu do servidor").complete();
     }
 
     @Override
@@ -151,6 +153,12 @@ public class Bot extends ListenerAdapter {
                 }else {
                     event.reply("Usuario invalido, tente novamente.").setEphemeral(false).queue();
                 }
+//            case "msg":
+//                channel = event.getGuild().getTextChannelById("1105666280113049730");
+//                message = channel.sendMessage("Boas-vindas ao "+event.getGuild().getName()+"! \n\n" +
+//                        "Por favor nao spammar mensagens de qualquer tipo nos chats.\n" +
+//                        "SEM MACAQUISSE OU BAN!\n\nClique no emote abaixo para ter acesso aos chats.").complete();
+//                message.addReaction(Emoji.fromCustom("minipeng", Long.parseLong("1030494386141810819"), true)).queue();
         }
 
 
