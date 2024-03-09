@@ -33,17 +33,11 @@ public class Bot extends ListenerAdapter {
 
     public static void main(String[] args) {
 
-        try (InputStream input = Bot.class.getClassLoader().getResourceAsStream("config.properties")) {
-
-            Properties prop = new Properties();
-
-            if (input == null) {
-                System.out.println("Sorry, unable to find config.properties");
-                return;
-            }
-            //load a properties file from class path, inside static method
-            prop.load(input);
-            String token = prop.getProperty("api.config.token");
+        String token = System.getenv("API_TOKEN");
+        if (token == null) {
+            System.out.println("Sorry, unable to find API_TOKEN environment variable");
+            return;
+        }
 
         JDA jda = JDABuilder.createLight(token, Collections.emptyList())
                 .addEventListeners(new Bot())
@@ -67,9 +61,6 @@ public class Bot extends ListenerAdapter {
                         .addOption(OptionType.USER, "user", "O Corno", true)
 //                Commands.slash("msg", "manda msg")
         ).queue();
-        } catch (IOException ex) {
-            ex.printStackTrace();
-        }
     }
 
     @Override
