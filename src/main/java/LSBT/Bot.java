@@ -33,17 +33,12 @@ public class Bot extends ListenerAdapter {
 
     public static void main(String[] args) {
 
-        try (InputStream input = Bot.class.getClassLoader().getResourceAsStream("config.properties")) {
+        String token = System.getenv("API_TOKEN");
 
-            Properties prop = new Properties();
-
-            if (input == null) {
-                System.out.println("Sorry, unable to find config.properties");
-                return;
-            }
-            //load a properties file from class path, inside static method
-            prop.load(input);
-            String token = prop.getProperty("api.config.token");
+        if (token.isEmpty()) {
+            System.out.println("Sorry, unable to fetch API_TOKEN from environment");
+            return;
+        }
 
         JDA jda = JDABuilder.createLight(token, Collections.emptyList())
                 .addEventListeners(new Bot())
@@ -67,9 +62,6 @@ public class Bot extends ListenerAdapter {
                         .addOption(OptionType.USER, "user", "O Corno", true)
 //                Commands.slash("msg", "manda msg")
         ).queue();
-        } catch (IOException ex) {
-            ex.printStackTrace();
-        }
     }
 
     @Override
@@ -101,7 +93,7 @@ public class Bot extends ListenerAdapter {
     }
 
     @Override
-    public void onGuildMemberRemove(GuildMemberRemoveEvent event){
+    public void onGuildMemberRemove(GuildMemberRemoveEvent event) {
         channel = event.getGuild().getTextChannelById("1105667587477610519");
         message = channel.sendMessage(event.getUser().getName() + " saiu do servidor").complete();
     }
@@ -149,7 +141,7 @@ public class Bot extends ListenerAdapter {
                 User user = event.getOption("user", OptionMapping::getAsUser);
                 if (user != null) {
                     event.reply(user.getAsMention() + " eh um corno.").setEphemeral(false).queue();
-                }else {
+                } else {
                     event.reply("Usuario invalido, tente novamente.").setEphemeral(false).queue();
                 }
 //            case "msg":
