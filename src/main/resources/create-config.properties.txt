@@ -1,2 +1,0 @@
-In this directory, create a config.properties file, and add a path like this:
-api.config.token=<TOKEN>
