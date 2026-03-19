@@ -1,7 +1,7 @@
 plugins {
     id 'java'
     id 'application' // Isto é necessário para tornar o projeto executável.
-    id 'com.github.johnrengelman.shadow' version '7.1.0' // Use a versão mais recente do plugin shadow.
+    id 'com.github.johnrengelman.shadow' version '8.1.1' // Use a versão mais recente do plugin shadow.
 }
 
 apply plugin: 'application'
